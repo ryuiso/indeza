@@ -1,0 +1,27 @@
+# -*- coding: utf-8 -*-
+import smtplib
+from email.MIMEText import MIMEText
+from email.Header import Header
+from email.Utils import formatdate
+def create_message(from_addr, to_addr, subject, body):
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = from_addr
+    msg['To'] = to_addr
+    msg['Date'] = formatdate(localtime=True)
+    return msg
+
+def send_via_gmail(from_addr, to_addr, msg):
+    s = smtplib.SMTP('smtp.gmail.com', 587)
+    s.ehlo()
+    s.starttls()
+    s.ehlo()
+    s.login('mhotmoney96@gmail.com', 'indezamoney55')
+    s.sendmail(from_addr, [to_addr], msg.as_string())
+    s.close()
+
+if __name__ == '__main__':
+    from_addr = 'otmoney96@gmail.com'
+    to_addr = 'otmoney96@gmail.com'
+    msg = create_message(from_addr, to_addr, 'subject', 'body')
+    send_via_gmail(from_addr, to_addr, msg)
