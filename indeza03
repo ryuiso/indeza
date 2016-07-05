@@ -1,0 +1,106 @@
+# -*- coding: utf-8 -*-
+import cv2
+import numpy as np
+import smtplib
+from email.MIMEText import MIMEText
+from email.Header import Header
+from email.Utils import formatdate
+
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+
+from email.Header import Header
+from email.Utils import formatdate
+import smtplib
+
+import time
+
+def create_message(from_addr, to_addr, subject, body):
+	msg = MIMEText(body)
+	msg['Subject'] = subject
+	msg['From'] = from_addr
+	msg['To'] = to_addr
+	msg['Date'] = formatdate(localtime=True)
+	return msg
+	
+	
+def send_via_gmail(from_addr, to_addr, msg):
+	s = smtplib.SMTP('smtp.gmail.com', 587)
+	s.ehlo()
+	s.starttls()
+	s.ehlo()
+	s.login('mhotmoney96@gmail.com', 'indezamoney55')
+	s.sendmail(from_addr, [to_addr], msg.as_string())
+	s.close()
+	
+def send_email_with_jpeg(from_addr, to_addr, subject, body, jpegs=[], server='smtp.gmail.com', port=587):
+	encoding='utf-8'
+	msg = MIMEMultipart()
+	mt = MIMEText(body.encode(encoding), 'plain', encoding)
+
+	if jpegs:
+		for fn in jpegs:
+			img = open(fn, 'rb').read()
+			mj = MIMEImage(img, 'jpeg', filename=fn)
+			mj.add_header("Content-Disposition", "attachment", filename=fn)
+			msg.attach(mj)
+		msg.attach(mt)
+	else:
+		msg = mt
+
+	msg['Subject'] = Header(subject, encoding)
+	msg['From'] = from_addr
+	msg['To'] = to_addr
+	msg['Date'] = formatdate()
+
+	_user = "mhotmoney96@gmail.com"
+	_pass = "indezamoney55"
+
+	smtp = smtplib.SMTP(server, port)
+	smtp.ehlo()
+	smtp.starttls()
+	smtp.ehlo()
+	smtp.login(_user, _pass)
+	smtp.sendmail(from_addr, [to_addr], msg.as_string())
+	smtp.close()		
+
+def send_mail():
+	body = u'\n%s\n	--- %s\n' % (u'お祝いありがとう！', u'これ買ったよ！')
+	#js = ['jobs0.jpeg', 'jobs.jpeg']
+	js = ['image.jpg']
+	send_email_with_jpeg('mhotmoney96@gmail.com', 'mhotmoney96@gmail.com', u'プレゼントの感謝メール', body, js)
+
+	
+
+	
+if __name__=="__main__":
+	capture = cv2.VideoCapture(1)
+	
+	if capture.isOpened() is False:
+		raise("IO Error")
+
+	cv2.namedWindow("Capture", cv2.WINDOW_AUTOSIZE)
+
+	while True:
+		ret, image = capture.read()
+		if ret == False:
+			continue
+
+		#cv2.imshow("Capture", image)
+		img_HSV = cv2.cvtColor(image,cv2.COLOR_RGB2HSV)
+		#print img_HSV[2][2]
+		cv2.imshow("Capture", image)
+		img_numpy = np.asarray(img_HSV)
+		#print np.mean(img_numpy[:][:][2])
+		#print img_HSV[:][:][2]
+
+		if cv2.waitKey(33) >= 0:
+			cv2.imwrite("image.jpg", image)
+			time.sleep(3)
+			send_mail();
+			print "sent"
+			break
+		
+
+cv2.destroyAllWindows()
